@@ -1,0 +1,45 @@
+{% extends 'base.html' %}
+{% block title %}Накладная №{{ supply.id }}{% endblock %}
+{% block content %}
+<div class="page-head">
+    <h1>Накладная №{{ supply.id }}</h1>
+    <a href="{{ url_for('admin_supplies') }}" class="btn-secondary">← К списку</a>
+</div>
+
+<div class="shift-summary">
+    <p><b>Дата:</b> {{ supply.date.strftime('%d.%m.%Y') }}</p>
+    <p><b>Поставщик:</b> {{ supply.supplier }}</p>
+    {% if supply.comment %}<p><b>Комментарий:</b> {{ supply.comment }}</p>{% endif %}
+    <p><b>Создал:</b> {{ supply.author.full_name if supply.author else '—' }}</p>
+    <p><b>Сумма:</b> <span class="expected">{{ "%.2f"|format(supply.total) }} ₽</span></p>
+</div>
+
+<h2>Позиции</h2>
+<table class="table">
+    <thead>
+    <tr>
+        <th>Товар</th>
+        <th>Кол-во</th>
+        <th>Цена закупки</th>
+        <th>Сумма</th>
+    </tr>
+    </thead>
+    <tbody>
+    {% for it in supply.items %}
+        <tr>
+            <td>{{ it.product_name }}</td>
+            <td>{{ it.quantity }} шт</td>
+            <td>{{ "%.2f"|format(it.purchase_price) }} ₽</td>
+            <td><b>{{ "%.2f"|format(it.line_total) }} ₽</b></td>
+        </tr>
+    {% endfor %}
+    </tbody>
+</table>
+
+<p class="hint" style="margin-top: 20px;">
+    💡 При сохранении этой накладной:<br>
+    • Остатки товаров были увеличены на указанные количества.<br>
+    • Оптовая цена каждого товара обновлена до <b>последней цены закупки</b>.<br>
+    • Если удалите накладную — остатки будут уменьшены обратно.
+</p>
+{% endblock %}

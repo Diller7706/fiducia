@@ -1,0 +1,44 @@
+{% extends 'base.html' %}
+{% block title %}Оприходование{% endblock %}
+{% block content %}
+<div class="page-head">
+    <h1>Оприходование товара</h1>
+    <a href="{{ url_for('admin_supply_new') }}" class="btn-primary">+ Новая накладная</a>
+</div>
+
+<table class="table">
+    <thead>
+    <tr>
+        <th>№</th>
+        <th>Дата</th>
+        <th>Поставщик</th>
+        <th>Позиций</th>
+        <th>Сумма</th>
+        <th>Кто создал</th>
+        <th></th>
+    </tr>
+    </thead>
+    <tbody>
+    {% for s in supplies %}
+        <tr>
+            <td>{{ s.id }}</td>
+            <td>{{ s.date.strftime('%d.%m.%Y') }}</td>
+            <td><b>{{ s.supplier }}</b></td>
+            <td>{{ s.items|length }}</td>
+            <td>{{ "%.2f"|format(s.total) }} ₽</td>
+            <td>{{ s.author.full_name if s.author else '—' }}</td>
+            <td class="actions">
+                <a href="{{ url_for('admin_supply_view', sid=s.id) }}" class="btn-sm">👁 Открыть</a>
+                <form method="post" action="{{ url_for('admin_supply_delete', sid=s.id) }}"
+                      onsubmit="return confirm('Удалить накладную? Остатки товаров будут уменьшены на указанные количества.')"
+                      style="display:inline">
+                    <button class="btn-sm btn-danger">🗑</button>
+                </form>
+            </td>
+        </tr>
+    {% else %}
+        <tr><td colspan="7" class="empty">Накладных нет. Создайте первую →</td></tr>
+    {% endfor %}
+    </tbody>
+</table>
+{% endblock %}

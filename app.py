@@ -1,6 +1,6 @@
 from flask import Flask, render_template, redirect, url_for, request, flash, jsonify, abort
 from flask_login import LoginManager, login_user, logout_user, login_required, current_user
-from models import db, User, Product, Category, Sale, SaleItem, Shift
+from models import db, User, Product, Category, Sale, SaleItem, Shift, Supply, SupplyItem
 from functools import wraps
 from datetime import datetime, timedelta
 from sqlalchemy import func
@@ -217,6 +217,123 @@ def admin_product_delete(pid):
     flash('Товар удалён', 'success')
     return redirect(url_for('admin_products'))
 
+# ----- Оприходование товара -----
+@app.route('/admin/supplies')
+@login_required
+@admin_required
+def admin_supplies():
+    supplies = Supply.query.order_by(Supply.date.desc(), Supply.id.desc()).all()
+    return render_template('admin/supplies.html', supplies=supplies)
+
+
+@app.route('/admin/supplies/new', methods=['GET', 'POST'])
+@login_required
+@admin_required
+def admin_supply_new():
+    products = Product.query.filter_by(is_active=True).order_by(Product.name).all()
+
+    if request.method == 'POST':
+        try:
+            date_raw = request.form.get('date', '').strip()
+            supplier = request.form.get('supplier', '').strip()
+            comment = request.form.get('comment', '').strip()
+
+            if not date_raw or not supplier:
+                flash('Укажите дату и поставщика', 'error')
+                return redirect(url_for('admin_supply_new'))
+
+            # получаем товары и количества из формы
+            product_ids = request.form.getlist('product_id[]')
+            quantities = request.form.getlist('quantity[]')
+            prices = request.form.getlist('purchase_price[]')
+
+            items_data = []
+            for pid, qty, price in zip(product_ids, quantities, prices):
+                if not pid or not qty or not price:
+                    continue
+                try:
+                    qty = int(qty)
+                    price = float(price)
+                except ValueError:
+                    continue
+                if qty <= 0 or price < 0:
+                    continue
+                items_data.append((int(pid), qty, price))
+
+            if not items_data:
+                flash('Добавьте хотя бы одну позицию', 'error')
+                return redirect(url_for('admin_supply_new'))
+
+            supply = Supply(
+                date=datetime.strptime(date_raw, '%Y-%m-%d').date(),
+                supplier=supplier,
+                comment=comment,
+                created_by=current_user.id,
+            )
+            db.session.add(supply)
+            db.session.flush()
+
+            total = 0.0
+            for pid, qty, price in items_data:
+                p = Product.query.get(pid)
+                if not p:
+                    continue
+
+                # обновляем остаток и опт. цену
+                p.stock += qty
+                p.wholesale_price = price
+
+                line_total = qty * price
+                total += line_total
+
+                db.session.add(SupplyItem(
+                    supply_id=supply.id,
+                    product_id=p.id,
+                    product_name=p.name,
+                    quantity=qty,
+                    purchase_price=price,
+                ))
+
+            supply.total = total
+            db.session.commit()
+
+            flash(f'Оприходование сохранено на сумму {total:.2f} ₽', 'success')
+            return redirect(url_for('admin_supply_view', sid=supply.id))
+
+        except Exception as e:
+            db.session.rollback()
+            flash(f'Ошибка: {e}', 'error')
+
+        return render_template('admin/supply_form.html',
+                       products=products,
+                       now_date=datetime.utcnow().strftime('%Y-%m-%d'))
+
+
+@app.route('/admin/supplies/<int:sid>')
+@login_required
+@admin_required
+def admin_supply_view(sid):
+    supply = Supply.query.get_or_404(sid)
+    return render_template('admin/supply_view.html', supply=supply)
+
+
+@app.route('/admin/supplies/<int:sid>/delete', methods=['POST'])
+@login_required
+@admin_required
+def admin_supply_delete(sid):
+    supply = Supply.query.get_or_404(sid)
+    try:
+        # откатываем остатки
+        for item in supply.items:
+            if item.product:
+                item.product.stock -= item.quantity
+        db.session.delete(supply)
+        db.session.commit()
+        flash('Оприходование удалено (остатки пересчитаны)', 'success')
+    except Exception as e:
+        db.session.rollback()
+        flash(f'Ошибка: {e}', 'error')
+    return redirect(url_for('admin_supplies'))
 
 # ----- Категории -----
 @app.route('/admin/categories', methods=['GET', 'POST'])

@@ -117,3 +117,32 @@ class SaleItem(db.Model):
     quantity = db.Column(db.Integer, nullable=False, default=1)
 
     product = db.relationship('Product')
+
+class Supply(db.Model):
+    __tablename__ = 'supplies'
+    id = db.Column(db.Integer, primary_key=True)
+    date = db.Column(db.Date, nullable=False)
+    supplier = db.Column(db.String(200), nullable=False)
+    comment = db.Column(db.Text, nullable=True)
+    total = db.Column(db.Float, default=0.0)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    created_by = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=True)
+
+    items = db.relationship('SupplyItem', backref='supply', cascade='all, delete-orphan')
+    author = db.relationship('User')
+
+
+class SupplyItem(db.Model):
+    __tablename__ = 'supply_items'
+    id = db.Column(db.Integer, primary_key=True)
+    supply_id = db.Column(db.Integer, db.ForeignKey('supplies.id'), nullable=False)
+    product_id = db.Column(db.Integer, db.ForeignKey('products.id'), nullable=False)
+    product_name = db.Column(db.String(200), nullable=False)
+    quantity = db.Column(db.Integer, nullable=False, default=1)
+    purchase_price = db.Column(db.Float, nullable=False, default=0.0)
+
+    product = db.relationship('Product')
+
+    @property
+    def line_total(self):
+        return self.quantity * self.purchase_price
