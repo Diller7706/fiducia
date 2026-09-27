@@ -1,0 +1,15 @@
+{% extends 'base.html' %}
+{% block title %}Открытие смены{% endblock %}
+{% block content %}
+<div class="shift-box">
+    <h1>Открытие смены</h1>
+    <p class="subtitle">Введите сумму разменного фонда (наличные в кассе на начало смены).</p>
+
+    <form method="post" class="form-card">
+        <label>Разменный фонд, ₽
+            <input type="number" step="0.01" name="opening_cash" value="0" min="0" required autofocus>
+        </label>
+        <button type="submit" class="btn-primary btn-large">Открыть смену</button>
+    </form>
+</div>
+{% endblock %}

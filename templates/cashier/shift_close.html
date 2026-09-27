@@ -1,0 +1,28 @@
+{% extends 'base.html' %}
+{% block title %}Закрытие смены{% endblock %}
+{% block content %}
+<h1>Закрытие смены</h1>
+
+<div class="stats">
+    <div class="stat-card"><div class="stat-label">Чеков</div><div class="stat-value">{{ sales_count }}</div></div>
+    <div class="stat-card"><div class="stat-label">Выручка</div><div class="stat-value">{{ "%.2f"|format(total_revenue) }} ₽</div></div>
+    <div class="stat-card"><div class="stat-label">Наличные</div><div class="stat-value">{{ "%.2f"|format(cash_revenue) }} ₽</div></div>
+    <div class="stat-card"><div class="stat-label">Карта</div><div class="stat-value">{{ "%.2f"|format(card_revenue) }} ₽</div></div>
+</div>
+
+<div class="shift-summary">
+    <p>Разменный фонд: <b>{{ "%.2f"|format(shift.opening_cash) }} ₽</b></p>
+    <p>Ожидаемая наличность в кассе: <b class="expected">{{ "%.2f"|format(expected_cash) }} ₽</b></p>
+</div>
+
+<form method="post" class="form-card">
+    <label>Фактическая наличность при закрытии, ₽ *
+        <input type="number" step="0.01" name="closing_cash" required autofocus
+               value="{{ '%.2f'|format(expected_cash) }}">
+    </label>
+    <label>Комментарий
+        <textarea name="note" rows="2"></textarea>
+    </label>
+    <button type="submit" class="btn-primary btn-large">Закрыть смену</button>
+</form>
+{% endblock %}

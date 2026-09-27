@@ -1,0 +1,46 @@
+{% extends 'base.html' %}
+{% block title %}Отчёт по смене №{{ shift.id }}{% endblock %}
+{% block content %}
+<h1>Отчёт по смене №{{ shift.id }}</h1>
+
+<div class="shift-summary">
+    <p><b>Кассир:</b> {{ shift.cashier.full_name }}</p>
+    <p><b>Открыта:</b> {{ shift.opened_at.strftime('%d.%m.%Y %H:%M') }}</p>
+    <p><b>Закрыта:</b> {{ shift.closed_at.strftime('%d.%m.%Y %H:%M') if shift.closed_at else '—' }}</p>
+    <p><b>Разменный фонд:</b> {{ "%.2f"|format(shift.opening_cash) }} ₽</p>
+    <p><b>Наличные:</b> {{ "%.2f"|format(cash_revenue) }} ₽</p>
+    <p><b>Карта:</b> {{ "%.2f"|format(card_revenue) }} ₽</p>
+    {% if shift.expected_cash is not none %}
+        <p><b>Ожидалось в кассе:</b> {{ "%.2f"|format(shift.expected_cash) }} ₽</p>
+        <p><b>Фактически:</b> {{ "%.2f"|format(shift.closing_cash) }} ₽</p>
+        {% if diff is not none %}
+            <p class="big-diff">Расхождение:
+                <b class="{{ 'ok' if diff == 0 else ('danger' if diff < 0 else 'warn') }}">
+                    {{ '%+.2f'|format(diff) }} ₽
+                </b>
+            </p>
+        {% endif %}
+    {% endif %}
+    {% if shift.note %}<p><b>Комментарий:</b> {{ shift.note }}</p>{% endif %}
+</div>
+
+<h2>Чеки смены</h2>
+<table class="table">
+    <thead><tr><th>№</th><th>Время</th><th>Оплата</th><th>Сумма</th><th></th></tr></thead>
+    <tbody>
+    {% for s in sales %}
+        <tr>
+            <td>{{ s.id }}</td>
+            <td>{{ s.created_at.strftime('%H:%M:%S') }}</td>
+            <td>{{ 'Наличные' if s.payment_method=='cash' else 'Карта' }}</td>
+            <td>{{ "%.2f"|format(s.total) }} ₽</td>
+            <td><a href="{{ url_for('receipt', sale_id=s.id) }}" class="btn-sm">Чек</a></td>
+        </tr>
+    {% else %}
+        <tr><td colspan="5" class="empty">Продаж не было</td></tr>
+    {% endfor %}
+    </tbody>
+</table>
+
+<button onclick="window.print()" class="btn-primary no-print">🖨 Печать отчёта</button>
+{% endblock %}

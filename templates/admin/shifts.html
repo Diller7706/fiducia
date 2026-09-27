@@ -1,0 +1,36 @@
+{% extends 'base.html' %}
+{% block title %}Смены{% endblock %}
+{% block content %}
+<h1>Смены кассиров</h1>
+<table class="table">
+    <thead>
+    <tr>
+        <th>№</th><th>Кассир</th><th>Открыта</th><th>Закрыта</th>
+        <th>Нал.</th><th>Ожидалось</th><th>Факт</th><th>Расхождение</th><th></th>
+    </tr>
+    </thead>
+    <tbody>
+    {% for s in shifts %}
+        {% set cash = s.sales|selectattr('payment_method','equalto','cash')|map(attribute='total')|sum %}
+        {% set diff = (s.closing_cash - s.expected_cash) if (s.closing_cash is not none and s.expected_cash is not none) else none %}
+        <tr>
+            <td>{{ s.id }}</td>
+            <td>{{ s.cashier.full_name }}</td>
+            <td>{{ s.opened_at.strftime('%d.%m %H:%M') }}</td>
+            <td>{{ s.closed_at.strftime('%d.%m %H:%M') if s.closed_at else '🟢 открыта' }}</td>
+            <td>{{ "%.2f"|format(cash) }} ₽</td>
+            <td>{{ "%.2f"|format(s.expected_cash) if s.expected_cash is not none else '—' }}</td>
+            <td>{{ "%.2f"|format(s.closing_cash) if s.closing_cash is not none else '—' }}</td>
+            <td>
+                {% if diff is not none %}
+                    <b class="{{ 'ok' if diff == 0 else ('danger' if diff < 0 else 'warn') }}">{{ '%+.2f'|format(diff) }}</b>
+                {% else %}—{% endif %}
+            </td>
+            <td><a href="{{ url_for('shift_report', shift_id=s.id) }}" class="btn-sm">Отчёт</a></td>
+        </tr>
+    {% else %}
+        <tr><td colspan="9" class="empty">Смен нет</td></tr>
+    {% endfor %}
+    </tbody>
+</table>
+{% endblock %}
