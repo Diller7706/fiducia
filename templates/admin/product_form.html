@@ -3,23 +3,37 @@
 {% block content %}
 <h1>{{ 'Редактировать товар' if product else 'Новый товар' }}</h1>
 
-<form method="post" class="form-card">
+<form method="post" enctype="multipart/form-data" class="form-card">
     <label>Название *
         <input type="text" name="name" required value="{{ product.name if product else '' }}">
     </label>
+
     <label>Штрихкод
         <input type="text" name="barcode" value="{{ product.barcode or '' if product else '' }}">
     </label>
+
     <div class="grid-2">
-        <label>Цена, ₽ *
+        <label>Розничная цена, ₽ *
             <input type="number" step="0.01" name="price" required
                    value="{{ product.price if product else '' }}">
         </label>
+        <label>Оптовая цена, ₽ <span class="hint">(видит только админ)</span>
+            <input type="number" step="0.01" name="wholesale_price"
+                   value="{{ product.wholesale_price if product and product.wholesale_price else '' }}">
+        </label>
+    </div>
+
+    <div class="grid-2">
         <label>Остаток, шт *
             <input type="number" name="stock" required
                    value="{{ product.stock if product else '0' }}">
         </label>
+        <label>Срок годности
+            <input type="date" name="expiry_date"
+                   value="{{ product.expiry_date.strftime('%Y-%m-%d') if product and product.expiry_date else '' }}">
+        </label>
     </div>
+
     <label>Категория
         <select name="category_id">
             <option value="">— без категории —</option>
@@ -31,9 +45,21 @@
             {% endfor %}
         </select>
     </label>
+
     <label>Описание
         <textarea name="description" rows="3">{{ product.description or '' if product else '' }}</textarea>
     </label>
+
+    <label>Фото товара
+        <input type="file" name="image" accept="image/*">
+    </label>
+
+    {% if product and product.image %}
+        <div class="current-image">
+            <p class="hint">Текущее фото:</p>
+            <img src="{{ url_for('static', filename='uploads/' + product.image) }}" alt="">
+        </div>
+    {% endif %}
 
     <div class="form-actions">
         <button type="submit" class="btn-primary">Сохранить</button>

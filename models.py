@@ -39,16 +39,42 @@ class Product(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(200), nullable=False)
     barcode = db.Column(db.String(50), unique=True, nullable=True)
-    price = db.Column(db.Float, nullable=False, default=0.0)
+    price = db.Column(db.Float, nullable=False, default=0.0)             # розничная
+    wholesale_price = db.Column(db.Float, nullable=True)                  # ← ОПТОВАЯ
     stock = db.Column(db.Integer, nullable=False, default=0)
     category_id = db.Column(db.Integer, db.ForeignKey('categories.id'), nullable=True)
     description = db.Column(db.Text, nullable=True)
-    image = db.Column(db.String(255), nullable=True)          # ← НОВОЕ
+    image = db.Column(db.String(255), nullable=True)
+    expiry_date = db.Column(db.Date, nullable=True)                       # ← СРОК ГОДНОСТИ
     is_active = db.Column(db.Boolean, default=True)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
+    @property
+    def expiry_status(self):
+        """Возвращает цветовой статус срока годности."""
+        if not self.expiry_date:
+            return None
+        today = datetime.utcnow().date()
+        days_left = (self.expiry_date - today).days
+        if days_left < 0:
+            return 'expired'      # просрочен
+        if days_left <= 30:
+            return 'critical'     # бордовый — 1 месяц
+        if days_left <= 60:
+            return 'danger'       # красный — 2 месяца
+        if days_left <= 90:
+            return 'warning'      # жёлтый — 3 месяца
+        return 'ok'               # зелёный — всё хорошо
 
-class Shift(db.Model):                                        # ← НОВАЯ МОДЕЛЬ
+    @property
+    def expiry_days_left(self):
+        """Сколько дней осталось до истечения срока."""
+        if not self.expiry_date:
+            return None
+        return (self.expiry_date - datetime.utcnow().date()).days
+
+
+class Shift(db.Model):
     __tablename__ = 'shifts'
     id = db.Column(db.Integer, primary_key=True)
     cashier_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
@@ -70,14 +96,14 @@ class Sale(db.Model):
     __tablename__ = 'sales'
     id = db.Column(db.Integer, primary_key=True)
     cashier_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
-    shift_id = db.Column(db.Integer, db.ForeignKey('shifts.id'), nullable=True)   # ← НОВОЕ
+    shift_id = db.Column(db.Integer, db.ForeignKey('shifts.id'), nullable=True)
     total = db.Column(db.Float, nullable=False, default=0.0)
     payment_method = db.Column(db.String(20), default='cash')
     discount = db.Column(db.Float, default=0.0)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
     cashier = db.relationship('User', backref='sales')
-    shift = db.relationship('Shift', backref='sales')         # ← НОВОЕ
+    shift = db.relationship('Shift', backref='sales')
     items = db.relationship('SaleItem', backref='sale', cascade='all, delete-orphan')
 
 

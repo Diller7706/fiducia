@@ -576,3 +576,67 @@ h2 {
     .container { margin: 0; padding: 0; max-width: 100%; }
     .receipt { box-shadow: none; border-top: none; }
 }
+/* ═══════ Оптовая цена ═══════ */
+.wholesale-price {
+    color: var(--brand-dark);
+    font-weight: 600;
+    background: var(--brand-light);
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 13px;
+}
+
+/* ═══════ Индикация срока годности ═══════ */
+.expiry-badge {
+    display: inline-block;
+    padding: 4px 10px;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+/* 🟢 Больше 3 месяцев — всё ок */
+.expiry-ok {
+    background: #E8F3EA;
+    color: #2E7D32;
+}
+
+/* 🟡 3 месяца — внимание */
+.expiry-warning {
+    background: #FFF8E1;
+    color: #B26A00;
+    border-left: 3px solid #F5A623;
+}
+
+/* 🔴 2 месяца — срочно */
+.expiry-danger {
+    background: #FDE7E4;
+    color: #C0392B;
+    border-left: 3px solid #D94436;
+}
+
+/* 🟫 1 месяц — критично */
+.expiry-critical {
+    background: #7B1E1E;
+    color: white;
+    border-left: 3px solid #4A0E0E;
+    animation: pulse-critical 2s ease-in-out infinite;
+}
+
+/* ⬛ Просрочен */
+.expiry-expired {
+    background: #2A1E17;
+    color: #FFB4B4;
+    text-decoration: line-through;
+}
+
+@keyframes pulse-critical {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.75; }
+}
+
+/* Рамка вокруг строки товара с проблемным сроком */
+tr:has(.expiry-critical) td { background: #FFF5F5 !important; }
+tr:has(.expiry-danger)   td { background: #FFF9F8 !important; }
+tr:has(.expiry-warning)  td { background: #FFFCF5 !important; }

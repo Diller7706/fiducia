@@ -137,13 +137,23 @@ def admin_product_new():
     categories = Category.query.all()
     if request.method == 'POST':
         try:
+            # парсим опт.цену (может быть пустой)
+            ws_raw = request.form.get('wholesale_price', '').strip()
+            wholesale_price = float(ws_raw) if ws_raw else None
+
+            # парсим срок годности
+            exp_raw = request.form.get('expiry_date', '').strip()
+            expiry_date = datetime.strptime(exp_raw, '%Y-%m-%d').date() if exp_raw else None
+
             p = Product(
                 name=request.form['name'].strip(),
                 barcode=request.form.get('barcode', '').strip() or None,
                 price=float(request.form['price']),
+                wholesale_price=wholesale_price,
                 stock=int(request.form['stock']),
                 category_id=int(request.form['category_id']) if request.form.get('category_id') else None,
                 description=request.form.get('description', '').strip(),
+                expiry_date=expiry_date,
             )
             img = save_product_image(request.files.get('image'))
             if img:
@@ -169,6 +179,13 @@ def admin_product_edit(pid):
             p.name = request.form['name'].strip()
             p.barcode = request.form.get('barcode', '').strip() or None
             p.price = float(request.form['price'])
+
+            ws_raw = request.form.get('wholesale_price', '').strip()
+            p.wholesale_price = float(ws_raw) if ws_raw else None
+
+            exp_raw = request.form.get('expiry_date', '').strip()
+            p.expiry_date = datetime.strptime(exp_raw, '%Y-%m-%d').date() if exp_raw else None
+
             p.stock = int(request.form['stock'])
             p.category_id = int(request.form['category_id']) if request.form.get('category_id') else None
             p.description = request.form.get('description', '').strip()

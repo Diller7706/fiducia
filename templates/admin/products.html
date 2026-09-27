@@ -14,21 +14,56 @@
 <table class="table">
     <thead>
     <tr>
-        <th>ID</th><th>Название</th><th>Штрихкод</th>
-        <th>Категория</th><th>Цена</th><th>Остаток</th><th></th>
+        <th>ID</th>
+        <th>Название</th>
+        <th>Штрихкод</th>
+        <th>Категория</th>
+        <th>Розн. цена</th>
+        <th>Опт. цена</th>
+        <th>Остаток</th>
+        <th>Срок годности</th>
+        <th></th>
     </tr>
     </thead>
     <tbody>
     {% for p in products %}
         <tr>
             <td>{{ p.id }}</td>
-            <td>{{ p.name }}</td>
+            <td class="product-cell">
+                {% if p.image %}
+                    <img src="{{ url_for('static', filename='uploads/' + p.image) }}" class="thumb">
+                {% else %}
+                    <div class="thumb thumb-empty">💄</div>
+                {% endif %}
+                <span>{{ p.name }}</span>
+            </td>
             <td>{{ p.barcode or '—' }}</td>
             <td>{{ p.category.name if p.category else '—' }}</td>
-            <td>{{ "%.2f"|format(p.price) }} ₽</td>
+            <td><b>{{ "%.2f"|format(p.price) }} ₽</b></td>
+            <td>
+                {% if p.wholesale_price %}
+                    <span class="wholesale-price">{{ "%.2f"|format(p.wholesale_price) }} ₽</span>
+                {% else %}—{% endif %}
+            </td>
             <td>
                 {% if p.stock <= 5 %}<span class="badge-danger">{{ p.stock }}</span>
                 {% else %}{{ p.stock }}{% endif %}
+            </td>
+            <td>
+                {% if p.expiry_date %}
+                    <span class="expiry-badge expiry-{{ p.expiry_status }}">
+                        {{ p.expiry_date.strftime('%d.%m.%Y') }}
+                        {% if p.expiry_days_left is not none %}
+                            {% if p.expiry_days_left < 0 %}
+                                (просрочен)
+                            {% else %}
+                                ({{ p.expiry_days_left }} дн.)
+                            {% endif %}
+                        {% endif %}
+                    </span>
+                {% else %}
+                    <span class="hint">не указан</span>
+                {% endif %}
             </td>
             <td class="actions">
                 <a href="{{ url_for('admin_product_edit', pid=p.id) }}" class="btn-sm">✏</a>
@@ -39,7 +74,7 @@
             </td>
         </tr>
     {% else %}
-        <tr><td colspan="7" class="empty">Товаров не найдено</td></tr>
+        <tr><td colspan="9" class="empty">Товаров не найдено</td></tr>
     {% endfor %}
     </tbody>
 </table>
