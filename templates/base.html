@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="ru">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>{% block title %}Магазин уходовой косметики{% endblock %}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+{% if current_user.is_authenticated %}
+<header class="topbar">
+    <a href="{{ url_for('index') }}" class="topbar-logo" style="text-decoration:none">
+    <span class="brand-name">fiducia</span>
+    <span class="brand-sub">skin</span>
+    </a>
+    <nav>
+        {% if current_user.role == 'admin' %}
+            <a href="{{ url_for('admin_dashboard') }}">Панель</a>
+            <a href="{{ url_for('admin_products') }}">Товары</a>
+            <a href="{{ url_for('admin_categories') }}">Категории</a>
+            <a href="{{ url_for('admin_users') }}">Пользователи</a>
+            <a href="{{ url_for('admin_reports') }}">Отчёты</a>
+            <a href="{{ url_for('cashier_pos') }}">Касса</a>
+        {% else %}
+            <a href="{{ url_for('cashier_pos') }}">Касса</a>
+        {% endif %}
+    </nav>
+    <div class="user-info">
+        <span>{{ current_user.full_name }}</span>
+        <a href="{{ url_for('logout') }}" class="btn-logout">Выйти</a>
+    </div>
+</header>
+{% endif %}
+
+<main class="container">
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% for cat, msg in messages %}
+            <div class="flash flash-{{ cat }}">{{ msg }}</div>
+        {% endfor %}
+    {% endwith %}
+    {% block content %}{% endblock %}
+</main>
+</body>
+</html>

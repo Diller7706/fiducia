@@ -1,0 +1,43 @@
+{% extends 'base.html' %}
+{% block title %}Касса{% endblock %}
+{% block content %}
+<h1>Касса</h1>
+
+<div class="pos-layout">
+    <!-- ЛЕВАЯ ЧАСТЬ: поиск и товары -->
+    <div class="pos-left">
+        <div class="search-row">
+            <input type="text" id="searchInput" placeholder="Поиск по названию или штрихкоду..." autofocus>
+            <select id="categoryFilter">
+                <option value="">Все категории</option>
+                {% for c in categories %}
+                    <option value="{{ c.id }}">{{ c.name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div id="productsGrid" class="products-grid"></div>
+    </div>
+
+    <!-- ПРАВАЯ ЧАСТЬ: корзина -->
+    <div class="pos-right">
+        <h2>Корзина</h2>
+        <div id="cartList" class="cart-list">
+            <div class="empty">Добавьте товары</div>
+        </div>
+
+        <div class="cart-total">
+            <div>Скидка, %: <input type="number" id="discountInput" value="0" min="0" max="100" style="width:70px"></div>
+            <div class="total-line">Итого: <span id="totalAmount">0.00</span> ₽</div>
+        </div>
+
+        <div class="payment-methods">
+            <label><input type="radio" name="pay" value="cash" checked> 💵 Наличные</label>
+            <label><input type="radio" name="pay" value="card"> 💳 Карта</label>
+        </div>
+
+        <button id="checkoutBtn" class="btn-primary btn-large">Оформить продажу</button>
+    </div>
+</div>
+
+<script src="{{ url_for('static', filename='pos.js') }}"></script>
+{% endblock %}

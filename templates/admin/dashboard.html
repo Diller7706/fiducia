@@ -1,0 +1,36 @@
+{% extends 'base.html' %}
+{% block title %}Панель администратора{% endblock %}
+{% block content %}
+<h1>Панель администратора</h1>
+
+<div class="stats">
+    <div class="stat-card">
+        <div class="stat-label">Выручка за сегодня</div>
+        <div class="stat-value">{{ "%.2f"|format(revenue_today) }} ₽</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-label">Продаж за сегодня</div>
+        <div class="stat-value">{{ sales_count }}</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-label">Товаров в каталоге</div>
+        <div class="stat-value">{{ products_count }}</div>
+    </div>
+</div>
+
+{% if low_stock %}
+<h2>⚠ Товары с низким остатком (≤5)</h2>
+<table class="table">
+    <thead><tr><th>Товар</th><th>Остаток</th><th></th></tr></thead>
+    <tbody>
+    {% for p in low_stock %}
+        <tr>
+            <td>{{ p.name }}</td>
+            <td><span class="badge-danger">{{ p.stock }}</span></td>
+            <td><a href="{{ url_for('admin_product_edit', pid=p.id) }}" class="btn-sm">Пополнить</a></td>
+        </tr>
+    {% endfor %}
+    </tbody>
+</table>
+{% endif %}
+{% endblock %}

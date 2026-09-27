@@ -1,0 +1,49 @@
+{% extends 'base.html' %}
+{% block title %}Отчёты{% endblock %}
+{% block content %}
+<h1>Отчёты о продажах</h1>
+
+<div class="tabs">
+    <a href="?period=today" class="{{ 'active' if period=='today' }}">Сегодня</a>
+    <a href="?period=week"  class="{{ 'active' if period=='week' }}">7 дней</a>
+    <a href="?period=month" class="{{ 'active' if period=='month' }}">30 дней</a>
+    <a href="?period=all"   class="{{ 'active' if period=='all' }}">Всё время</a>
+</div>
+
+<div class="stat-card wide">
+    <div class="stat-label">Общая выручка за период</div>
+    <div class="stat-value">{{ "%.2f"|format(total) }} ₽ ({{ sales|length }} чеков)</div>
+</div>
+
+<h2>Топ-10 товаров</h2>
+<table class="table">
+    <thead><tr><th>Товар</th><th>Продано, шт</th><th>Сумма</th></tr></thead>
+    <tbody>
+    {% for name, qty, s in top %}
+        <tr><td>{{ name }}</td><td>{{ qty }}</td><td>{{ "%.2f"|format(s) }} ₽</td></tr>
+    {% else %}
+        <tr><td colspan="3" class="empty">Нет данных</td></tr>
+    {% endfor %}
+    </tbody>
+</table>
+
+<h2>Все чеки</h2>
+<table class="table">
+    <thead><tr><th>№</th><th>Дата</th><th>Кассир</th><th>Оплата</th><th>Скидка</th><th>Сумма</th><th></th></tr></thead>
+    <tbody>
+    {% for s in sales %}
+        <tr>
+            <td>{{ s.id }}</td>
+            <td>{{ s.created_at.strftime('%d.%m.%Y %H:%M') }}</td>
+            <td>{{ s.cashier.full_name }}</td>
+            <td>{{ 'Наличные' if s.payment_method=='cash' else 'Карта' }}</td>
+            <td>{{ s.discount }}%</td>
+            <td>{{ "%.2f"|format(s.total) }} ₽</td>
+            <td><a href="{{ url_for('receipt', sale_id=s.id) }}" class="btn-sm">Чек</a></td>
+        </tr>
+    {% else %}
+        <tr><td colspan="7" class="empty">Нет продаж за период</td></tr>
+    {% endfor %}
+    </tbody>
+</table>
+{% endblock %}

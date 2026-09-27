@@ -1,0 +1,46 @@
+{% extends 'base.html' %}
+{% block title %}Товары{% endblock %}
+{% block content %}
+<div class="page-head">
+    <h1>Товары</h1>
+    <a href="{{ url_for('admin_product_new') }}" class="btn-primary">+ Добавить товар</a>
+</div>
+
+<form method="get" class="search-form">
+    <input type="text" name="q" placeholder="Поиск по названию..." value="{{ q }}">
+    <button type="submit" class="btn-sm">Найти</button>
+</form>
+
+<table class="table">
+    <thead>
+    <tr>
+        <th>ID</th><th>Название</th><th>Штрихкод</th>
+        <th>Категория</th><th>Цена</th><th>Остаток</th><th></th>
+    </tr>
+    </thead>
+    <tbody>
+    {% for p in products %}
+        <tr>
+            <td>{{ p.id }}</td>
+            <td>{{ p.name }}</td>
+            <td>{{ p.barcode or '—' }}</td>
+            <td>{{ p.category.name if p.category else '—' }}</td>
+            <td>{{ "%.2f"|format(p.price) }} ₽</td>
+            <td>
+                {% if p.stock <= 5 %}<span class="badge-danger">{{ p.stock }}</span>
+                {% else %}{{ p.stock }}{% endif %}
+            </td>
+            <td class="actions">
+                <a href="{{ url_for('admin_product_edit', pid=p.id) }}" class="btn-sm">✏</a>
+                <form method="post" action="{{ url_for('admin_product_delete', pid=p.id) }}"
+                      onsubmit="return confirm('Удалить товар?')" style="display:inline">
+                    <button class="btn-sm btn-danger">🗑</button>
+                </form>
+            </td>
+        </tr>
+    {% else %}
+        <tr><td colspan="7" class="empty">Товаров не найдено</td></tr>
+    {% endfor %}
+    </tbody>
+</table>
+{% endblock %}

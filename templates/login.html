@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="ru">
+<head>
+    <meta charset="utf-8">
+    <title>Вход — fiducia SKIN</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body class="login-page">
+<div class="login-box">
+    <div class="brand-logo">
+        <span class="brand-name">fiducia</span>
+        <span class="brand-sub">skin</span>
+    </div>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% for cat, msg in messages %}
+            <div class="flash flash-{{ cat }}">{{ msg }}</div>
+        {% endfor %}
+    {% endwith %}
+
+    <form method="post">
+        <label>Введите свой Логин
+            <input type="text" name="username" required autofocus>
+        </label>
+        <label>Введите свой пароль
+            <input type="password" name="password" required>
+        </label>
+        <button type="submit" class="btn-primary">Войти</button>
+    </form>
+</div>
+</body>
+</html>

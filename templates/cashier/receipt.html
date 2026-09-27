@@ -1,0 +1,29 @@
+{% extends 'base.html' %}
+{% block title %}Чек №{{ sale.id }}{% endblock %}
+{% block content %}
+<<div class="receipt">
+    <h1>fiducia</h1>
+    <p>Чек №{{ sale.id }}</p>
+    <p>{{ sale.created_at.strftime('%d.%m.%Y %H:%M') }}</p>
+    <p>Кассир: {{ sale.cashier.full_name }}</p>
+    <hr>
+    <table>
+        {% for it in sale.items %}
+        <tr>
+            <td>{{ it.product_name }}</td>
+            <td>{{ it.quantity }} × {{ "%.2f"|format(it.price) }}</td>
+            <td>{{ "%.2f"|format(it.price * it.quantity) }} ₽</td>
+        </tr>
+        {% endfor %}
+    </table>
+    <hr>
+    {% if sale.discount > 0 %}
+    <p>Скидка: {{ sale.discount }}%</p>
+    {% endif %}
+    <p class="receipt-total">ИТОГО: {{ "%.2f"|format(sale.total) }} ₽</p>
+    <p>Оплата: {{ 'Наличные' if sale.payment_method=='cash' else 'Карта' }}</p>
+    <p class="thanks">Спасибо за покупку! 🌸</p>
+    <button onclick="window.print()" class="btn-primary no-print">🖨 Печать</button>
+    <a href="{{ url_for('cashier_pos') }}" class="btn-secondary no-print">Новая продажа</a>
+</div>
+{% endblock %}
