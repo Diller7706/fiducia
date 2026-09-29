@@ -1,6 +1,12 @@
 {% extends 'base.html' %}
 {% block title %}Отчёты{% endblock %}
 {% block content %}
+
+<div class="tabs">
+    <a href="{{ url_for('admin_reports', period=period) }}" class="active">📊 Продажи</a>
+    <a href="{{ url_for('admin_profit', period=period) }}">💰 Прибыль</a>
+</div>
+
 <h1>Отчёты о продажах</h1>
 
 <div class="tabs">

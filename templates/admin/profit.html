@@ -1,0 +1,79 @@
+{% extends 'base.html' %}
+{% block title %}Отчёт о прибыли{% endblock %}
+{% block content %}
+
+<div class="tabs">
+    <a href="{{ url_for('admin_reports', period=period) }}">📊 Продажи</a>
+    <a href="{{ url_for('admin_profit', period=period) }}" class="active">💰 Прибыль</a>
+</div>
+
+<h1>Отчёт о прибыли</h1>
+
+<div class="tabs">
+    <a href="?period=today" class="{{ 'active' if period=='today' }}">Сегодня</a>
+    <a href="?period=week"  class="{{ 'active' if period=='week' }}">7 дней</a>
+    <a href="?period=month" class="{{ 'active' if period=='month' }}">30 дней</a>
+    <a href="?period=all"   class="{{ 'active' if period=='all' }}">Всё время</a>
+</div>
+
+<div class="stats">
+    <div class="stat-card">
+        <div class="stat-label">Выручка</div>
+        <div class="stat-value">{{ "%.2f"|format(total_revenue) }} ₽</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-label">Себестоимость</div>
+        <div class="stat-value">{{ "%.2f"|format(total_cost) }} ₽</div>
+    </div>
+    <div class="stat-card" style="border-left-color: #2E7D32;">
+        <div class="stat-label">Чистая прибыль</div>
+        <div class="stat-value" style="color:#2E7D32;">{{ "%.2f"|format(total_profit) }} ₽</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-label">Средняя маржа</div>
+        <div class="stat-value">{{ "%.1f"|format(margin) }} %</div>
+    </div>
+</div>
+
+<p class="hint" style="margin-bottom: 20px;">
+    Период: <b>{{ sales_count }}</b> чеков.
+</p>
+
+<h2>Прибыль по товарам</h2>
+<table class="table">
+    <thead>
+    <tr>
+        <th>Товар</th>
+        <th>Продано</th>
+        <th>Выручка</th>
+        <th>Себестоимость</th>
+        <th>Прибыль</th>
+        <th>Маржа</th>
+    </tr>
+    </thead>
+    <tbody>
+    {% for item in items %}
+        <tr>
+            <td>{{ item.name }}</td>
+            <td>{{ item.qty }} шт</td>
+            <td>{{ "%.2f"|format(item.revenue) }} ₽</td>
+            <td>{{ "%.2f"|format(item.cost) }} ₽</td>
+            <td><b class="profit-value">{{ "%.2f"|format(item.profit) }} ₽</b></td>
+            <td>
+                <span class="margin-badge {{ 'margin-good' if item.margin >= 30 else ('margin-mid' if item.margin >= 15 else 'margin-low') }}">
+                    {{ "%.1f"|format(item.margin) }}%
+                </span>
+            </td>
+        </tr>
+    {% else %}
+        <tr><td colspan="6" class="empty">Нет данных за период. Продайте что-нибудь через кассу →</td></tr>
+    {% endfor %}
+    </tbody>
+</table>
+
+<p class="hint" style="margin-top: 24px;">
+    💡 <b>Себестоимость</b> = оптовая цена товара, <b>зафиксированная в момент продажи</b>.
+    Если у товара не была указана оптовая цена — прибыль считается как полная выручка.
+    Скидки пропорционально уменьшают выручку.
+</p>
+{% endblock %}

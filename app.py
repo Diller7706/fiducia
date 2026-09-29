@@ -137,11 +137,9 @@ def admin_product_new():
     categories = Category.query.all()
     if request.method == 'POST':
         try:
-            # парсим опт.цену (может быть пустой)
             ws_raw = request.form.get('wholesale_price', '').strip()
             wholesale_price = float(ws_raw) if ws_raw else None
 
-            # парсим срок годности
             exp_raw = request.form.get('expiry_date', '').strip()
             expiry_date = datetime.strptime(exp_raw, '%Y-%m-%d').date() if exp_raw else None
 
@@ -217,6 +215,7 @@ def admin_product_delete(pid):
     flash('Товар удалён', 'success')
     return redirect(url_for('admin_products'))
 
+
 # ----- Оприходование товара -----
 @app.route('/admin/supplies')
 @login_required
@@ -242,7 +241,6 @@ def admin_supply_new():
                 flash('Укажите дату и поставщика', 'error')
                 return redirect(url_for('admin_supply_new'))
 
-            # получаем товары и количества из формы
             product_ids = request.form.getlist('product_id[]')
             quantities = request.form.getlist('quantity[]')
             prices = request.form.getlist('purchase_price[]')
@@ -279,7 +277,6 @@ def admin_supply_new():
                 if not p:
                     continue
 
-                # обновляем остаток и опт. цену
                 p.stock += qty
                 p.wholesale_price = price
 
@@ -304,9 +301,10 @@ def admin_supply_new():
             db.session.rollback()
             flash(f'Ошибка: {e}', 'error')
 
-        return render_template('admin/supply_form.html',
-                       products=products,
-                       now_date=datetime.utcnow().strftime('%Y-%m-%d'))
+    # ⚠️ ВАЖНО: этот return — НА УРОВНЕ ФУНКЦИИ, а не внутри if
+    return render_template('admin/supply_form.html',
+                           products=products,
+                           now_date=datetime.utcnow().strftime('%Y-%m-%d'))
 
 
 @app.route('/admin/supplies/<int:sid>')
@@ -323,7 +321,6 @@ def admin_supply_view(sid):
 def admin_supply_delete(sid):
     supply = Supply.query.get_or_404(sid)
     try:
-        # откатываем остатки
         for item in supply.items:
             if item.product:
                 item.product.stock -= item.quantity
@@ -334,6 +331,7 @@ def admin_supply_delete(sid):
         db.session.rollback()
         flash(f'Ошибка: {e}', 'error')
     return redirect(url_for('admin_supplies'))
+
 
 # ----- Категории -----
 @app.route('/admin/categories', methods=['GET', 'POST'])
@@ -434,6 +432,72 @@ def admin_reports():
 
     return render_template('admin/reports.html',
                            sales=sales, total=total, period=period, top=top)
+
+
+# ----- Отчёт о прибыли -----
+@app.route('/admin/profit')
+@login_required
+@admin_required
+def admin_profit():
+    """Отчёт о прибыли: выручка − себестоимость по каждому товару."""
+    from collections import defaultdict
+
+    period = request.args.get('period', 'today')
+    now = datetime.utcnow()
+
+    if period == 'today':
+        start = datetime.combine(now.date(), datetime.min.time())
+    elif period == 'week':
+        start = now - timedelta(days=7)
+    elif period == 'month':
+        start = now - timedelta(days=30)
+    else:
+        start = datetime(2000, 1, 1)
+
+    sales = Sale.query.filter(Sale.created_at >= start).all()
+
+    stats = defaultdict(lambda: {'qty': 0, 'revenue': 0.0, 'cost': 0.0})
+    total_revenue = 0.0
+    total_cost = 0.0
+
+    for sale in sales:
+        discount_factor = 1 - (sale.discount or 0) / 100
+        for item in sale.items:
+            revenue = item.price * item.quantity * discount_factor
+            cost = (item.cost_price or 0) * item.quantity
+
+            stats[item.product_name]['qty'] += item.quantity
+            stats[item.product_name]['revenue'] += revenue
+            stats[item.product_name]['cost'] += cost
+
+            total_revenue += revenue
+            total_cost += cost
+
+    total_profit = total_revenue - total_cost
+    margin = (total_profit / total_revenue * 100) if total_revenue else 0
+
+    items_list = []
+    for name, s in stats.items():
+        profit = s['revenue'] - s['cost']
+        item_margin = (profit / s['revenue'] * 100) if s['revenue'] else 0
+        items_list.append({
+            'name': name,
+            'qty': s['qty'],
+            'revenue': s['revenue'],
+            'cost': s['cost'],
+            'profit': profit,
+            'margin': item_margin,
+        })
+    items_list.sort(key=lambda x: x['profit'], reverse=True)
+
+    return render_template('admin/profit.html',
+                           items=items_list,
+                           total_revenue=total_revenue,
+                           total_cost=total_cost,
+                           total_profit=total_profit,
+                           margin=margin,
+                           period=period,
+                           sales_count=len(sales))
 
 
 # ----- Смены (админ) -----
@@ -622,9 +686,12 @@ def api_checkout():
                 return jsonify({'ok': False, 'error': f'Недостаточно товара: {p.name if p else "?"}'}), 400
             p.stock -= it['qty']
             total += p.price * it['qty']
+            # фиксируем опт. цену на момент продажи (для отчёта о прибыли)
             db.session.add(SaleItem(
                 sale_id=sale.id, product_id=p.id,
-                product_name=p.name, price=p.price, quantity=it['qty']
+                product_name=p.name, price=p.price,
+                cost_price=p.wholesale_price or 0,
+                quantity=it['qty']
             ))
 
         total_after_discount = round(total * (1 - discount / 100), 2)
@@ -671,12 +738,16 @@ def ensure_db():
             if Product.query.count() == 0:
                 cat = Category.query.first()
                 demo = [
-                    Product(name='Крем для лица увлажняющий', price=890, stock=25,
+                    Product(name='Крем для лица увлажняющий', price=890, wholesale_price=580, stock=25,
                             category_id=cat.id, barcode='1000001'),
-                    Product(name='Помада матовая красная', price=650, stock=40, barcode='1000002'),
-                    Product(name='Тушь для ресниц объёмная', price=720, stock=30, barcode='1000003'),
-                    Product(name='Тоник для лица', price=450, stock=50, barcode='1000004'),
-                    Product(name='Парфюм женский 50мл', price=3200, stock=10, barcode='1000005'),
+                    Product(name='Помада матовая красная', price=650, wholesale_price=400, stock=40,
+                            barcode='1000002'),
+                    Product(name='Тушь для ресниц объёмная', price=720, wholesale_price=460, stock=30,
+                            barcode='1000003'),
+                    Product(name='Тоник для лица', price=450, wholesale_price=280, stock=50,
+                            barcode='1000004'),
+                    Product(name='Парфюм женский 50мл', price=3200, wholesale_price=2100, stock=10,
+                            barcode='1000005'),
                 ]
                 db.session.add_all(demo)
                 db.session.commit()

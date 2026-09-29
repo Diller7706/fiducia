@@ -640,3 +640,37 @@ h2 {
 tr:has(.expiry-critical) td { background: #FFF5F5 !important; }
 tr:has(.expiry-danger)   td { background: #FFF9F8 !important; }
 tr:has(.expiry-warning)  td { background: #FFFCF5 !important; }
+
+/* ═══════ Отчёт о прибыли ═══════ */
+.profit-value {
+    color: #2E7D32;
+    font-weight: 700;
+    font-family: var(--font-serif);
+    font-size: 15px;
+}
+
+.margin-badge {
+    display: inline-block;
+    padding: 4px 11px;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.margin-good {
+    background: #E8F3EA;
+    color: #2E7D32;
+    border: 1px solid #A5D6A7;
+}
+
+.margin-mid {
+    background: #FFF8E1;
+    color: #B26A00;
+    border: 1px solid #FFCC80;
+}
+
+.margin-low {
+    background: #FDE7E4;
+    color: #C0392B;
+    border: 1px solid #EF9A9A;
+}
