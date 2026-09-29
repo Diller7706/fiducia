@@ -114,9 +114,15 @@ class SaleItem(db.Model):
     product_id = db.Column(db.Integer, db.ForeignKey('products.id'), nullable=False)
     product_name = db.Column(db.String(200), nullable=False)
     price = db.Column(db.Float, nullable=False)
+    cost_price = db.Column(db.Float, nullable=True, default=0.0)   # ← НОВОЕ
     quantity = db.Column(db.Integer, nullable=False, default=1)
 
     product = db.relationship('Product')
+
+    @property
+    def profit(self):
+        """Прибыль по этой позиции."""
+        return (self.price - (self.cost_price or 0)) * self.quantity
 
 class Supply(db.Model):
     __tablename__ = 'supplies'
