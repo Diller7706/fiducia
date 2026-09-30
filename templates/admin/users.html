@@ -27,10 +27,15 @@
             <td>{{ u.username }}</td>
             <td><span class="badge">{{ 'Админ' if u.role == 'admin' else 'Кассир' }}</span></td>
             <td>{{ '🟢 активен' if u.is_active_user else '🔴 заблокирован' }}</td>
-            <td>
+            <td class="actions">
+                <a href="{{ url_for('admin_user_edit', uid=u.id) }}" class="btn-sm">✏</a>
                 {% if u.id != current_user.id %}
-                <form method="post" action="{{ url_for('admin_user_toggle', uid=u.id) }}">
-                    <button class="btn-sm">{{ 'Заблокировать' if u.is_active_user else 'Разблокировать' }}</button>
+                <form method="post" action="{{ url_for('admin_user_toggle', uid=u.id) }}" style="display:inline">
+                    <button class="btn-sm">{{ 'Блок' if u.is_active_user else 'Разблок' }}</button>
+                </form>
+                <form method="post" action="{{ url_for('admin_user_delete', uid=u.id) }}"
+                      onsubmit="return confirm('Удалить пользователя {{ u.full_name }}?')" style="display:inline">
+                    <button class="btn-sm btn-danger">🗑</button>
                 </form>
                 {% endif %}
             </td>

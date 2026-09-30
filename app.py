@@ -106,20 +106,9 @@ def admin_dashboard():
                            low_stock=low_stock)
 
 
-# ----- Товары -----
-@app.route('/admin/products')
-@login_required
-@admin_required
-def admin_products():
-    q = request.args.get('q', '').strip()
-    query = Product.query
-    if q:
-        query = query.filter(Product.name.ilike(f'%{q}%'))
-    products = query.order_by(Product.id.desc()).all()
-    return render_template('admin/products.html', products=products, q=q)
-
-
+# ----- Вспомогательные функции -----
 def save_product_image(file):
+    """Сохраняет загруженный файл фото товара и возвращает имя файла."""
     if not file or not file.filename:
         return None
     if not allowed_file(file.filename):
@@ -128,6 +117,40 @@ def save_product_image(file):
     filename = f"p_{int(datetime.utcnow().timestamp()*1000)}.{ext}"
     file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
     return filename
+
+
+# ----- Товары -----
+@app.route('/admin/products')
+@login_required
+@admin_required
+def admin_products():
+    q = request.args.get('q', '').strip()
+    show_archived = request.args.get('show_archived') == '1'
+
+    query = Product.query
+    if not show_archived:
+        query = query.filter(Product.is_active == True)
+    else:
+        query = query.filter(Product.is_active == False)
+
+    if q:
+        query = query.filter(Product.name.ilike(f'%{q}%'))
+
+    products = query.order_by(Product.id.desc()).all()
+    return render_template('admin/products.html',
+                           products=products, q=q,
+                           show_archived=show_archived)
+
+
+@app.route('/admin/products/<int:pid>/restore', methods=['POST'])
+@login_required
+@admin_required
+def admin_product_restore(pid):
+    p = Product.query.get_or_404(pid)
+    p.is_active = True
+    db.session.commit()
+    flash('Товар восстановлен', 'success')
+    return redirect(url_for('admin_products', show_archived=1))
 
 
 @app.route('/admin/products/new', methods=['GET', 'POST'])
@@ -301,7 +324,6 @@ def admin_supply_new():
             db.session.rollback()
             flash(f'Ошибка: {e}', 'error')
 
-    # ⚠️ ВАЖНО: этот return — НА УРОВНЕ ФУНКЦИИ, а не внутри if
     return render_template('admin/supply_form.html',
                            products=products,
                            now_date=datetime.utcnow().strftime('%Y-%m-%d'))
@@ -399,6 +421,76 @@ def admin_user_toggle(uid):
         u.is_active_user = not u.is_active_user
         db.session.commit()
         flash('Статус изменён', 'success')
+    return redirect(url_for('admin_users'))
+
+
+@app.route('/admin/users/<int:uid>/edit', methods=['GET', 'POST'])
+@login_required
+@admin_required
+def admin_user_edit(uid):
+    u = User.query.get_or_404(uid)
+
+    if request.method == 'POST':
+        try:
+            full_name = request.form.get('full_name', '').strip()
+            username = request.form.get('username', '').strip()
+            new_password = request.form.get('password', '').strip()
+            role = request.form.get('role', 'cashier')
+
+            if not full_name or not username:
+                flash('Заполните ФИО и логин', 'error')
+                return redirect(url_for('admin_user_edit', uid=uid))
+
+            existing = User.query.filter(User.username == username, User.id != uid).first()
+            if existing:
+                flash('Такой логин уже занят', 'error')
+                return redirect(url_for('admin_user_edit', uid=uid))
+
+            u.full_name = full_name
+            u.username = username
+            u.role = role
+
+            if new_password:
+                u.set_password(new_password)
+
+            db.session.commit()
+            flash('Пользователь обновлён', 'success')
+            return redirect(url_for('admin_users'))
+        except Exception as e:
+            db.session.rollback()
+            flash(f'Ошибка: {e}', 'error')
+
+    return render_template('admin/user_form.html', user=u)
+
+
+@app.route('/admin/users/<int:uid>/delete', methods=['POST'])
+@login_required
+@admin_required
+def admin_user_delete(uid):
+    u = User.query.get_or_404(uid)
+
+    if u.id == current_user.id:
+        flash('Нельзя удалить себя', 'error')
+        return redirect(url_for('admin_users'))
+
+    if u.role == 'admin':
+        admins_count = User.query.filter_by(role='admin', is_active_user=True).count()
+        if admins_count <= 1:
+            flash('Нельзя удалить последнего администратора', 'error')
+            return redirect(url_for('admin_users'))
+
+    has_sales = Sale.query.filter_by(cashier_id=u.id).first() is not None
+    has_shifts = Shift.query.filter_by(cashier_id=u.id).first() is not None
+
+    if has_sales or has_shifts:
+        u.is_active_user = False
+        db.session.commit()
+        flash('У пользователя есть история продаж/смен — он переведён в архив (заблокирован)', 'success')
+    else:
+        db.session.delete(u)
+        db.session.commit()
+        flash('Пользователь удалён', 'success')
+
     return redirect(url_for('admin_users'))
 
 
@@ -686,7 +778,6 @@ def api_checkout():
                 return jsonify({'ok': False, 'error': f'Недостаточно товара: {p.name if p else "?"}'}), 400
             p.stock -= it['qty']
             total += p.price * it['qty']
-            # фиксируем опт. цену на момент продажи (для отчёта о прибыли)
             db.session.add(SaleItem(
                 sale_id=sale.id, product_id=p.id,
                 product_name=p.name, price=p.price,
@@ -714,7 +805,7 @@ def receipt(sale_id):
 
 
 # =====================================================
-#      АВТО-СОЗДАНИЕ БД ПРИ СТАРТЕ (для Render Free)
+#      АВТО-СОЗДАНИЕ БД ПРИ СТАРТЕ
 # =====================================================
 def ensure_db():
     with app.app_context():

@@ -1,13 +1,23 @@
 {% extends 'base.html' %}
 {% block title %}Касса{% endblock %}
 {% block content %}
-<h1>Касса</h1>
+
+<div class="pos-header">
+    <h1>Касса</h1>
+    <div class="pos-shift-info">
+        <span>Смена №{{ shift.id }} · открыта {{ shift.opened_at.strftime('%H:%M') }}</span>
+        <a href="{{ url_for('shift_close') }}" class="btn-secondary btn-sm">Закрыть смену</a>
+    </div>
+</div>
 
 <div class="pos-layout">
     <!-- ЛЕВАЯ ЧАСТЬ: поиск и товары -->
     <div class="pos-left">
+        <input type="text" id="barcodeInput" class="barcode-input"
+               placeholder="🔍 Отсканируйте штрихкод или введите название..."
+               autofocus autocomplete="off">
+
         <div class="search-row">
-            <input type="text" id="searchInput" placeholder="Поиск по названию или штрихкоду..." autofocus>
             <select id="categoryFilter">
                 <option value="">Все категории</option>
                 {% for c in categories %}
@@ -15,6 +25,7 @@
                 {% endfor %}
             </select>
         </div>
+
         <div id="productsGrid" class="products-grid"></div>
     </div>
 

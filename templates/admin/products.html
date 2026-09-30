@@ -2,11 +2,17 @@
 {% block title %}Товары{% endblock %}
 {% block content %}
 <div class="page-head">
-    <h1>Товары</h1>
+    <h1>Товары {% if show_archived %}(архив){% endif %}</h1>
     <a href="{{ url_for('admin_product_new') }}" class="btn-primary">+ Добавить товар</a>
 </div>
 
+<div class="tabs">
+    <a href="{{ url_for('admin_products', q=q) }}" class="{{ 'active' if not show_archived }}">Активные</a>
+    <a href="{{ url_for('admin_products', q=q, show_archived=1) }}" class="{{ 'active' if show_archived }}">Архив</a>
+</div>
+
 <form method="get" class="search-form">
+    {% if show_archived %}<input type="hidden" name="show_archived" value="1">{% endif %}
     <input type="text" name="q" placeholder="Поиск по названию..." value="{{ q }}">
     <button type="submit" class="btn-sm">Найти</button>
 </form>
@@ -33,7 +39,7 @@
                 {% if p.image %}
                     <img src="{{ url_for('static', filename='uploads/' + p.image) }}" class="thumb">
                 {% else %}
-                    <div class="thumb thumb-empty">💄</div>
+                    <div class="thumb thumb-empty">f</div>
                 {% endif %}
                 <span>{{ p.name }}</span>
             </td>
@@ -54,11 +60,8 @@
                     <span class="expiry-badge expiry-{{ p.expiry_status }}">
                         {{ p.expiry_date.strftime('%d.%m.%Y') }}
                         {% if p.expiry_days_left is not none %}
-                            {% if p.expiry_days_left < 0 %}
-                                (просрочен)
-                            {% else %}
-                                ({{ p.expiry_days_left }} дн.)
-                            {% endif %}
+                            {% if p.expiry_days_left < 0 %}(просрочен)
+                            {% else %}({{ p.expiry_days_left }} дн.){% endif %}
                         {% endif %}
                     </span>
                 {% else %}
@@ -66,15 +69,23 @@
                 {% endif %}
             </td>
             <td class="actions">
-                <a href="{{ url_for('admin_product_edit', pid=p.id) }}" class="btn-sm">✏</a>
-                <form method="post" action="{{ url_for('admin_product_delete', pid=p.id) }}"
-                      onsubmit="return confirm('Удалить товар?')" style="display:inline">
-                    <button class="btn-sm btn-danger">🗑</button>
-                </form>
+                {% if show_archived %}
+                    <form method="post" action="{{ url_for('admin_product_restore', pid=p.id) }}" style="display:inline">
+                        <button class="btn-sm">↩ Восстановить</button>
+                    </form>
+                {% else %}
+                    <a href="{{ url_for('admin_product_edit', pid=p.id) }}" class="btn-sm">✏</a>
+                    <form method="post" action="{{ url_for('admin_product_delete', pid=p.id) }}"
+                          onsubmit="return confirm('Удалить товар?')" style="display:inline">
+                        <button class="btn-sm btn-danger">🗑</button>
+                    </form>
+                {% endif %}
             </td>
         </tr>
     {% else %}
-        <tr><td colspan="9" class="empty">Товаров не найдено</td></tr>
+        <tr><td colspan="9" class="empty">
+            {% if show_archived %}Архив пуст{% else %}Товаров не найдено{% endif %}
+        </td></tr>
     {% endfor %}
     </tbody>
 </table>

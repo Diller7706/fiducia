@@ -1,0 +1,31 @@
+{% extends 'base.html' %}
+{% block title %}Редактировать пользователя{% endblock %}
+{% block content %}
+<h1>Редактировать пользователя</h1>
+
+<form method="post" class="form-card">
+    <label>ФИО *
+        <input type="text" name="full_name" required value="{{ user.full_name }}">
+    </label>
+
+    <label>Логин *
+        <input type="text" name="username" required value="{{ user.username }}">
+    </label>
+
+    <label>Новый пароль <span class="hint">(оставьте пустым, чтобы не менять)</span>
+        <input type="password" name="password" placeholder="••••••">
+    </label>
+
+    <label>Роль
+        <select name="role">
+            <option value="cashier" {% if user.role == 'cashier' %}selected{% endif %}>Кассир</option>
+            <option value="admin" {% if user.role == 'admin' %}selected{% endif %}>Администратор</option>
+        </select>
+    </label>
+
+    <div class="form-actions">
+        <button type="submit" class="btn-primary">Сохранить</button>
+        <a href="{{ url_for('admin_users') }}" class="btn-secondary">Отмена</a>
+    </div>
+</form>
+{% endblock %}
