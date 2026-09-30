@@ -3,19 +3,19 @@
    Палитра взята из официального логотипа
    ═══════════════════════════════════════════ */
 
-@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600;700&family=Montserrat:wght@300;400;500;600&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600;700&family=Montserrat:wght@300;400;500;600&family=Inter:wght@400;500;600;700&display=swap');
 
 * { box-sizing: border-box; margin: 0; padding: 0; }
 
 :root {
-    /* ─── FIRMENNYE CVETA ─── */
-    --brand:          #DE4F1F;   /* основной оранжевый из лого */
-    --brand-dark:     #B93D14;   /* hover */
+    /* фирменные цвета — без изменений */
+    --brand:          #DE4F1F;
+    --brand-dark:     #B93D14;
     --brand-darker:   #952F0E;
-    --brand-light:    #FCE9E0;   /* светлый фон */
-    --brand-soft:     #FFF4EE;   /* очень светлый */
+    --brand-light:    #FCE9E0;
+    --brand-soft:     #FFF4EE;
 
-    --bg:             #FBF6F2;   /* молочный фон страницы */
+    --bg:             #FBF6F2;
     --surface:        #FFFFFF;
     --border:         #EDE2D9;
     --text:           #2A1E17;
@@ -25,8 +25,10 @@
     --danger:         #C0392B;
     --warning:        #E0A020;
 
-    --font-serif: 'Cormorant Garamond', 'Playfair Display', Georgia, serif;
-    --font-sans:  'Montserrat', 'Segoe UI', Tahoma, sans-serif;
+    /* шрифты */
+    --font-serif: 'Cormorant Garamond', 'Playfair Display', Georgia, serif;  /* только для логотипа */
+    --font-sans:  'Montserrat', 'Segoe UI', Tahoma, sans-serif;               /* основной текст */
+    --font-num:   'Inter', 'Segoe UI', system-ui, sans-serif;                 /* цифры */
 }
 
 body {
@@ -126,7 +128,7 @@ body {
 .container { max-width: 1300px; margin: 28px auto; padding: 0 24px; }
 h1 {
     margin-bottom: 22px;
-    font-family: var(--font-serif);
+    font-family: var(--font-num);
     font-weight: 600;
     font-size: 34px;
     color: var(--text);
@@ -134,7 +136,7 @@ h1 {
 }
 h2 {
     margin: 26px 0 14px;
-    font-family: var(--font-serif);
+    font-family: var(--font-num);
     font-weight: 600;
     font-size: 22px;
     color: var(--text);
@@ -269,7 +271,7 @@ h2 {
     font-weight: 600; margin-bottom: 8px;
 }
 .stat-value {
-    font-family: var(--font-serif);
+    font-family: var(--font-num);
     font-size: 38px; font-weight: 600;
     color: var(--brand); letter-spacing: -0.5px;
 }
@@ -407,7 +409,7 @@ h2 {
     letter-spacing: 1px;
 }
 .product-card .pprice {
-    font-family: var(--font-serif);
+    font-family: var(--font-num);
     font-weight: 700; color: var(--brand); font-size: 20px;
 }
 .product-card .pstock { font-size: 11px; color: var(--muted); }
@@ -433,11 +435,11 @@ h2 {
 .cart-item .csum {
     font-weight: 700; color: var(--brand);
     font-size: 15px; min-width: 70px; text-align: right;
-    font-family: var(--font-serif);
+    font-family: var(--font-num);
 }
 
 .cart-total { border-top: 2px solid var(--border); padding-top: 16px; margin-bottom: 16px; }
-.total-line { font-size: 22px; font-weight: 600; margin-top: 8px; font-family: var(--font-serif); }
+.total-line { font-size: 22px; font-weight: 600; margin-top: 8px; font-family: var(--font-num); }
 .total-line span { color: var(--brand); font-weight: 700; }
 
 .payment-methods { display: flex; gap: 18px; margin-bottom: 16px; }
@@ -484,14 +486,14 @@ h2 {
 .receipt-total {
     font-size: 24px !important; font-weight: 700;
     color: var(--brand) !important;
-    font-family: var(--font-serif);
+    font-family: var(--font-num);
 }
 .thanks { margin-top: 14px !important; font-style: italic; }
 .receipt .btn-primary, .receipt .btn-secondary { margin-top: 14px; }
 
 /* ════════════ СМЕНА ════════════ */
 .shift-box { max-width: 540px; margin: 50px auto; text-align: center; }
-.shift-box h1 { color: var(--brand); font-family: var(--font-serif); font-size: 32px; }
+.shift-box h1 { color: var(--brand); font-family: var(--font-num); font-size: 32px; }
 .shift-box .subtitle { color: var(--muted); margin-bottom: 28px; font-size: 13px; letter-spacing: 1px; }
 .shift-summary {
     background: white; padding: 26px 30px; border-radius: 6px;
@@ -500,7 +502,7 @@ h2 {
     border-left: 3px solid var(--brand);
 }
 .shift-summary p { margin: 8px 0; font-size: 14px; }
-.expected { color: var(--brand); font-size: 22px; font-family: var(--font-serif); font-weight: 700; }
+.expected { color: var(--brand); font-size: 22px; font-family: var(--font-num); font-weight: 700; }
 .big-diff { font-size: 18px; }
 .big-diff .ok { color: var(--success); }
 .big-diff .warn { color: var(--warning); }
@@ -564,7 +566,7 @@ h2 {
 .pimg-empty {
     display: flex; align-items: center; justify-content: center;
     background: var(--brand-light);
-    font-family: var(--font-serif);
+    font-family: var(--font-num);
     font-size: 34px; color: var(--brand);
     font-weight: 500;
 }
@@ -645,7 +647,7 @@ tr:has(.expiry-warning)  td { background: #FFFCF5 !important; }
 .profit-value {
     color: #2E7D32;
     font-weight: 700;
-    font-family: var(--font-serif);
+    font-family: var(--font-num);
     font-size: 15px;
 }
 
@@ -673,4 +675,120 @@ tr:has(.expiry-warning)  td { background: #FFFCF5 !important; }
     background: #FDE7E4;
     color: #C0392B;
     border: 1px solid #EF9A9A;
+}
+/* ═══════════════════════════════════════════════
+   ЦИФРЫ — Inter с табличными цифрами
+   Все цифры одной ширины, столбцы выравниваются
+   ═══════════════════════════════════════════════ */
+
+/* Общее правило — применяется везде, где есть цифры */
+.num, .stat-value, .pprice, .pstock, .csum, .total-line, .total-line span,
+.receipt-total, .expected, .profit-value, .margin-badge, .wholesale-price,
+.expiry-badge, .cart-item .csum, table .price, .big-diff b {
+    font-family: var(--font-num);
+    font-feature-settings: 'tnum' 1, 'cv11' 1;  /* табличные цифры + альтернативная "1" */
+    font-variant-numeric: tabular-nums;
+    letter-spacing: -0.01em;
+}
+
+/* Заголовки статистики — тоже Inter, но крупнее */
+.stat-value {
+    font-weight: 700;
+    font-size: 34px;
+    color: var(--brand);
+    font-family: var(--font-num);
+    letter-spacing: -0.02em;
+}
+
+/* Цена товара на карточке */
+.product-card .pprice {
+    font-size: 17px;
+    font-weight: 700;
+    color: var(--brand);
+    font-family: var(--font-num);
+}
+
+/* Сумма позиции в корзине */
+.cart-item .csum {
+    font-weight: 600;
+    color: var(--brand);
+    font-size: 14px;
+    min-width: 80px;
+    text-align: right;
+    font-family: var(--font-num);
+}
+
+/* Итого в корзине */
+.total-line {
+    font-family: var(--font-sans);
+    font-weight: 600;
+}
+.total-line span {
+    font-family: var(--font-num);
+    font-weight: 700;
+    font-size: 24px;
+    color: var(--brand);
+}
+
+/* Чек */
+.receipt h1 {
+    /* fiducia — оставляем serif */
+    font-family: var(--font-num);
+}
+.receipt-total {
+    font-family: var(--font-num) !important;
+    font-size: 22px !important;
+    font-weight: 700 !important;
+    color: var(--brand) !important;
+    letter-spacing: -0.02em;
+}
+
+/* Отчёт о прибыли */
+.profit-value {
+    font-family: var(--font-num);
+    font-weight: 700;
+    color: #2E7D32;
+    font-size: 15px;
+}
+
+/* Ожидаемая наличность в смене */
+.expected {
+    color: var(--brand);
+    font-size: 22px;
+    font-weight: 700;
+    font-family: var(--font-num);
+}
+
+/* Бейдж маржи */
+.margin-badge {
+    font-family: var(--font-num);
+    font-feature-settings: 'tnum' 1;
+}
+
+/* Оптовая цена */
+.wholesale-price {
+    font-family: var(--font-num);
+    font-weight: 600;
+    letter-spacing: 0;
+}
+
+/* Бейдж срока годности */
+.expiry-badge {
+    font-family: var(--font-num);
+    font-feature-settings: 'tnum' 1;
+}
+
+/* Все цены в таблицах */
+.table td b {
+    font-family: var(--font-num);
+    font-feature-settings: 'tnum' 1;
+}
+
+/* Расхождение в смене */
+.big-diff {
+    font-family: var(--font-sans);
+}
+.big-diff b {
+    font-family: var(--font-num);
+    font-feature-settings: 'tnum' 1;
 }
